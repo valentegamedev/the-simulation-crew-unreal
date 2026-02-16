@@ -1,0 +1,15 @@
+
+.hg/
+binaries/
+deriveddatacache/
+.vs/
+build/
+intermediate/
+PACKPLUGIN/
+COMPPLUGIN/
+saved/
+*.orig
+*.sln
+*.xlsx
+.idea
+LUMC.sln.DotSettings.user
