@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "IWebSocket.h"
+#include "Authentication/JwtAuthenticationService.h"
 #include "AiBridgeWebSocketSubsystem.generated.h"
 
 
@@ -22,6 +23,10 @@ class AIBRIDGE_API UAiBridgeWebSocketSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 public:
+	
+	UPROPERTY(BlueprintReadWrite, Category = "WebSocket")
+	bool sendWakeUpCall = true;
+	
 	// Begin USubsystem
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -56,8 +61,22 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
 	FOnWebSocketBinaryMessage OnBinaryMessage;
+	
 
 private:
+	
+	FString ApiBaseUrl = "https://api-orchestrator-service-104588943109.europe-west4.run.app";
+	
 	TSharedPtr<IWebSocket> Socket;
 	
+	UPROPERTY()
+	UJwtAuthenticationService* AuthService;
+	bool bJwtReady;
+	FString CachedToken;
+	
+	void InitializeConnectionSequence();
+	
+	void SendWakeUpCallAsync() const;
+	
+	void PreFetchJwtToken();
 };
