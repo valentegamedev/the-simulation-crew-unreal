@@ -238,7 +238,36 @@ void UAiBridgeWebSocketSubsystem::SendSomethingCrazy()
     //F2FF1DD549380EB9EF7DAA80CA9AC7FF
     FString JsonString = TEXT(R"(
         {
-          "typ: 1.0,
+          "type": "textinput",
+          "text": "Hello, do you know my name?",
+          "requestId": "eec34af9-8dda-4f6c-9e65-cc18631a5b7b",
+          "timestamp":1771596968241,
+          "isNpcInitiated": false,
+          "context": {
+            "systemPrompt": "You are a professional customer service agent for XRLab.\n\nCOMPANY INFORMATION:\nSaxion XRLab is a Mixed Reality lab which focus on innovation using VR and AR solutions.\n\nPRODUCT KNOWLEDGE:\nWe offer development services for any kind of media which needs VR or AR. Including development using Unity and Unreal.\n\nCUSTOMER CONTEXT:\n\"No customer context available.\"\n\nSERVICE GUIDELINES:\n1. Greet customers warmly and professionally\n2. Listen actively to understand the issue\n3. Provide accurate information from the knowledge base\n4. If you don't know something, say so and offer to escalate\n5. Always confirm the customer's issue is resolved before ending\n6. Keep responses concise but complete\n\nESCALATION TRIGGERS:\n- Technical issues beyond basic troubleshooting\n- Billing disputes over ${serviceConfig.escalationThreshold}\n- Complaints about employee conduct\n- Legal or compliance questions\n\nWhen escalating, explain why and what will happen next.",
+            "messages": [{
+                "role": "user",
+                "content": "Hi there! my name is Daniel"
+              },
+              {
+                "role": "assistant",
+                "content": "Hello traveler! What brings you here?"
+              }],
+            "voiceId": "EXAVITQu4vr4xnSDxMaL",
+            "llmModel": "gpt-4o-mini",
+            "llmProvider": "openai",
+            "temperature": 0.7,
+            "maxTokens": 500,
+            "language": "en-US",
+            "ttsStreamingMode": "batch",
+            "ttsModel": "eleven_turbo_v2_5",
+            "sttProvider": "google",
+
+            "voiceStability": 0.5,
+            "voiceSimilarityBoost": 0.75,
+            "voiceStyle": 0.6,
+            "voiceUseSpeakerBoost": true,
+            "voiceSpeed": 1.0,
             "ttsLanguageCode": "en",
 
             "responseFormat": "json_object",
@@ -260,7 +289,7 @@ void UAiBridgeWebSocketSubsystem::SendSomething()
         {
           "type": "textinput",
           "text": "Hello, how are you today?",
-          "requestId": "F2FF1DD549380EB9EF7DAA80CA9AC7FF",
+          "requestId": "8d303a8a-ff39-4462-8ad2-10037c1727cc",
           "timestamp":1771596968241,
           "isNpcInitiated": false,
           "context": {
