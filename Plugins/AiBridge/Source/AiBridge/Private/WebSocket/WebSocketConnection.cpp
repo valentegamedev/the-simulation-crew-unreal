@@ -186,7 +186,25 @@ FString UWebSocketConnection::SanitizeUrl(const FString& Url)
 {
 	FString Result = Url;
 
-	Result = Result.Replace(TEXT("token="), TEXT("token=[REDACTED]"));
+	int32 TokenIndex = Result.Find(TEXT("token="), ESearchCase::IgnoreCase);
+	if (TokenIndex == INDEX_NONE)
+	{
+		return Result;
+	}
 
-	return Result;
+	int32 ValueStart = TokenIndex + 6; // length of "token="
+
+	// Find next '&' AFTER token value
+	int32 AmpIndex = Result.Find(TEXT("&"), ESearchCase::IgnoreCase, ESearchDir::FromStart, ValueStart);
+
+	if (AmpIndex != INDEX_NONE)
+	{
+		// token is in the middle
+		return Result.Left(ValueStart) + TEXT("[REDACTED]") + Result.Mid(AmpIndex);
+	}
+	else
+	{
+		// token is last parameter
+		return Result.Left(ValueStart) + TEXT("[REDACTED]");
+	}
 }

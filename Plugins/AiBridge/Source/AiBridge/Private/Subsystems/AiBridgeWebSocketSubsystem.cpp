@@ -165,7 +165,7 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
                 *FGenericPlatformHttp::UrlEncode(JwtToken)
             );
             
-            UE_LOG(LogTemp, Log, TEXT("[On WebSocket] URL: %s"), *FullUrl);
+            //UE_LOG(LogTemp, Log, TEXT("[On WebSocket] URL: %s"), *FullUrl);
             
             
             bEnableVerboseLogging = true;
@@ -178,13 +178,12 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
             // Bind events
             WebSocket->OnTextMessage = [this](const FString& Msg)
             {
-                UE_LOG(LogTemp, Log, TEXT("[MEssage] %s"), *Msg);
+                UE_LOG(LogTemp, Log, TEXT("[Message] %s"), *Msg);
             };
 
             WebSocket->OnBinaryMessage = [this](const TArray<uint8>& Data)
             {
-                FString Result = FString(Data.Num(), UTF8_TO_TCHAR(reinterpret_cast<const char*>(Data.GetData())));
-                UE_LOG(LogTemp, Log, TEXT("[On Binary] %s"), *Result);
+                UE_LOG(LogTemp, Log, TEXT("[On Binary] %d bytes"), Data.Num());
             };
 
             WebSocket->OnDisconnected = [this]()
