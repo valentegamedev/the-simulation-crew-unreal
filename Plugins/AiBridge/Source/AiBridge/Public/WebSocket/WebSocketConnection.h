@@ -53,7 +53,7 @@ private:
 	FString LastUrl;
 	FString JwtToken;
 
-	bool bVerbose = false;
+	bool bVerbose = true;
 
 	// Internal
 	void HandleConnected();

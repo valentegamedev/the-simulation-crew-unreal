@@ -65,12 +65,18 @@ public:
 
 	void EnsureConnection(TFunction<void(bool)> Callback);
 	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void SendSomething();
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void SendSomethingCrazy();
+	
 private:
 	
-	FString ApiBaseUrl = "https://api-orchestrator-service-104588943109.europe-west4.run.app";
+	FString ApiBaseUrl = "https://api-orchestrator-service-936031000571.europe-west4.run.app";
 	
 	bool bIsConnecting = false;
-	TSharedPtr<UWebSocketConnection> WebSocket;
+	UWebSocketConnection* WebSocket;
 	
 	UPROPERTY()
 	UJwtAuthenticationService* AuthService;

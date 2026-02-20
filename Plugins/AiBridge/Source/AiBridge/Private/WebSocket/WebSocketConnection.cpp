@@ -49,7 +49,8 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 	//WebSocket->OnClosed().AddRaw(this, &UWebSocketConnection::HandleClosed);
 	WebSocket->OnClosed().AddLambda([this](int32 StatusCode, const FString& Reason, bool bWasClean)
 	{
-		HandleClosed(StatusCode, Reason, bWasClean);
+		UE_LOG(LogTemp, Warning, TEXT("OnClosed"));
+		//HandleClosed(StatusCode, Reason, bWasClean);
 	});
 	
 	WebSocket->OnMessage().AddLambda(
@@ -59,8 +60,8 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 		}
 	);
 
-	WebSocket->OnRawMessage().AddLambda(
-		[this](const void* Data, SIZE_T Size, SIZE_T)
+	WebSocket->OnBinaryMessage().AddLambda(
+		[this](const void* Data, SIZE_T Size, bool isLast)
 		{
 			TArray<uint8> Bytes;
 			Bytes.Append((uint8*)Data, Size);
@@ -123,7 +124,7 @@ void UWebSocketConnection::HandleClosed(int32 StatusCode, const FString& Reason,
 
 	if (bAutoReconnect)
 	{
-		AttemptReconnect();
+		//AttemptReconnect();
 	}
 }
 
