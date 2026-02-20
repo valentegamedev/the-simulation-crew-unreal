@@ -14,7 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWebSocketDisconnected);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketTextMessage, const FString&, Message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWebSocketBinaryMessage, const TArray<uint8>&, Data);
 
-
+class UWebSocketConnection;
 /**
  * 
  */
@@ -34,7 +34,7 @@ public:
 
 	// Connection
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
-	void Connect(const FString& Url);
+	void Connect();
 
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void Disconnect();
@@ -63,11 +63,14 @@ public:
 	FOnWebSocketBinaryMessage OnBinaryMessage;
 	
 
+	void EnsureConnection(TFunction<void(bool)> Callback);
+	
 private:
 	
 	FString ApiBaseUrl = "https://api-orchestrator-service-104588943109.europe-west4.run.app";
 	
-	TSharedPtr<IWebSocket> Socket;
+	bool bIsConnecting = false;
+	TSharedPtr<UWebSocketConnection> WebSocket;
 	
 	UPROPERTY()
 	UJwtAuthenticationService* AuthService;
@@ -79,4 +82,6 @@ private:
 	void SendWakeUpCallAsync() const;
 	
 	void PreFetchJwtToken();
+	
+	
 };
