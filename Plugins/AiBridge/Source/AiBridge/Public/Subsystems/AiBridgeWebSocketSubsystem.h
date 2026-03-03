@@ -97,4 +97,18 @@ private:
 		TArray<uint8>& OutAudioData);
 	
 	bool IsWrapped(const TArray<uint8>& Data);
+	
+	bool IsOggHeader(const TArray<uint8>& Data);
+	
+	int32 ReceivedStreamCount = 0;
+	
+	
+	void OPUSDecode(const TArray<uint8>& Data);
+	
+	bool ParseOpusHead(const TArray<uint8>& Packet);
+	
+	int32 Channels;
+	uint16 PreSkip;
+	int32 SampleRate;
+	int16 OutputGain;
 };

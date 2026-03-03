@@ -204,9 +204,27 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
                         *PersonaName,
                         *ByteString);
                 }
-                OnBinaryMessage.Broadcast(AudioData);
+                
+                if (IsOggHeader(AudioData))
+                {
+                    ReceivedStreamCount++;
+                    UE_LOG(LogTemp, Log, TEXT("[%s] Detected OGG header [%d]"), *PersonaName, ReceivedStreamCount);
+                    // Only start NEW audio stream on FIRST OGG chunk
+                    if (ReceivedStreamCount == 1)
+                    {
+                        UE_LOG(LogTemp, Log, TEXT("[%s] First OGG header - starting audio playback immediately"), *PersonaName);
+                    } else
+                    {
+                        UE_LOG(LogTemp, Log, TEXT("[%s] Additional OGG header [%d] - part of ongoing stream"), *PersonaName, ReceivedStreamCount);
+                    }
+                
+                    
+                    ParseOpusHead(AudioData);
+                    
+                    OnBinaryMessage.Broadcast(AudioData);
+                };
             };
-
+            
             WebSocket->OnDisconnected = [this]()
             {
                 UE_LOG(LogTemp, Log, TEXT("[disconnect]"));
@@ -488,4 +506,77 @@ void UAiBridgeWebSocketSubsystem::UnwrapAudioChunk(
 bool UAiBridgeWebSocketSubsystem::IsWrapped(const TArray<uint8>& Data)
 {
     return Data.Num() > 2 && Data[0] == AUDIO_DATA_MARKER;
+}
+bool UAiBridgeWebSocketSubsystem::IsOggHeader(const TArray<uint8>& Data)
+{
+    return Data.Num() >= 4 &&
+           Data[0] == 0x4F && // 'O'
+           Data[1] == 0x67 && // 'g'
+           Data[2] == 0x67 && // 'g'
+           Data[3] == 0x53;   // 'S'
+}
+
+void UAiBridgeWebSocketSubsystem::OPUSDecode(const TArray<uint8>& Data)
+{
+    //int32 SampleRate = 48000;
+    //int32 ChannelCount = 1;
+}
+
+bool UAiBridgeWebSocketSubsystem::ParseOpusHead(const TArray<uint8>& Packet)
+{
+    // Minimum OpusHead size is 19 bytes
+    if (Packet.Num() < 19)
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("[OggOpusParser] OpusHead packet too small: %d"),
+            Packet.Num());
+        return false;
+    }
+
+    // Check signature ("OpusHead")
+    const ANSICHAR* ExpectedSignature = "OpusHead";
+    if (FMemory::Memcmp(Packet.GetData(), ExpectedSignature, 8) != 0)
+    {
+        // Convert first 8 bytes to readable string for logging
+        FString Signature = FString(8, UTF8_TO_TCHAR(reinterpret_cast<const char*>(Packet.GetData())));
+
+        UE_LOG(LogTemp, Error,
+            TEXT("[OggOpusParser] Invalid OpusHead signature: %s"),
+            *Signature);
+
+        return false;
+    } else
+    {
+        
+    }
+
+    // Parse header fields
+    uint8 Version = Packet[8];
+    Channels = Packet[9];
+
+    // Opus fields are little-endian
+    PreSkip = *reinterpret_cast<const uint16*>(&Packet[10]);
+    uint32 InputSampleRate = *reinterpret_cast<const uint32*>(&Packet[12]);
+    OutputGain = *reinterpret_cast<const int16*>(&Packet[16]);
+
+    uint8 MappingFamily = Packet[18];
+
+    // Opus always decodes at 48kHz
+    SampleRate = 48000;
+
+    // Convert output gain from Q7.8 to dB
+    float GainDb = OutputGain / 256.0f;
+    float LinearGain = FMath::Pow(10.0f, GainDb / 20.0f);
+
+
+        UE_LOG(LogTemp, Log,
+            TEXT("[OggOpusParser] OpusHead: v%d, %dch, preSkip=%d, inputRate=%u"),
+            Version, Channels, PreSkip, InputSampleRate);
+
+        UE_LOG(LogTemp, Log,
+            TEXT("[OggOpusParser] Output gain: %d (Q7.8) = %.2fdB = %.3fx linear, mapping=%d"),
+            OutputGain, GainDb, LinearGain, MappingFamily);
+    
+
+    return true;
 }
