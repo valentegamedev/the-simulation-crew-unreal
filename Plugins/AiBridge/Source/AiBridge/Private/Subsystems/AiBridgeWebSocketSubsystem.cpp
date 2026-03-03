@@ -184,6 +184,27 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
             WebSocket->OnBinaryMessage = [this](const TArray<uint8>& Data)
             {
                 UE_LOG(LogTemp, Log, TEXT("[On Binary] %d bytes"), Data.Num());
+                
+                
+                FString RequestId;
+                TArray<uint8> AudioData;
+
+                UnwrapAudioChunk(Data, RequestId, AudioData);
+
+                UE_LOG(LogTemp, Log, TEXT("RequestId: %s | Audio bytes: %d"), *RequestId, AudioData.Num());
+                
+                // Debug: Log first bytes to see what we're receiving
+                FString PersonaName = TEXT("Daniel");
+                if (AudioData.Num() >= 4)
+                {
+                    FString ByteString = FString::Printf(TEXT("%02X-%02X-%02X-%02X"),
+                        AudioData[0], AudioData[1], AudioData[2], AudioData[3]);
+
+                    UE_LOG(LogTemp, Log, TEXT("[%s] First 4 bytes: %s (expecting OggS: 4F-67-67-53)"),
+                        *PersonaName,
+                        *ByteString);
+                }
+                OnBinaryMessage.Broadcast(AudioData);
             };
 
             WebSocket->OnDisconnected = [this]()
@@ -418,4 +439,53 @@ void UAiBridgeWebSocketSubsystem::PreFetchJwtToken()
             UE_LOG(LogTemp, Log, TEXT("JWT ready. Token: %s"), *CachedToken);
         }
     );
+}
+
+
+void UAiBridgeWebSocketSubsystem::UnwrapAudioChunk(
+    const TArray<uint8>& Data,
+    FString& OutRequestId,
+    TArray<uint8>& OutAudioData)
+{
+    // Validate input
+    checkf(Data.Num() > 0, TEXT("Audio data cannot be null or empty"));
+
+    // Check for wrapped format
+    if (Data.Num() > 2 && Data[0] == AUDIO_DATA_MARKER)
+    {
+        uint8 RequestIdLength = Data[1];
+
+        checkf(
+            Data.Num() >= 2 + RequestIdLength,
+            TEXT("Invalid wrapped audio format: data length %d < %d"),
+            Data.Num(),
+            2 + RequestIdLength
+        );
+
+        // Extract RequestId (UTF8)
+        const uint8* RequestIdPtr = Data.GetData() + 2;
+        FUTF8ToTCHAR Converter(reinterpret_cast<const ANSICHAR*>(RequestIdPtr), RequestIdLength);
+        OutRequestId = FString(Converter.Length(), Converter.Get());
+
+        // Extract Audio Data
+        int32 AudioOffset = 2 + RequestIdLength;
+        int32 AudioSize = Data.Num() - AudioOffset;
+
+        OutAudioData.SetNumUninitialized(AudioSize);
+        FMemory::Memcpy(
+            OutAudioData.GetData(),
+            Data.GetData() + AudioOffset,
+            AudioSize
+        );
+
+        return;
+    }
+
+    // STRICT MODE: not wrapped = error
+    checkf(false, TEXT("Audio data is not wrapped with RequestId. All audio must be wrapped."));
+}
+
+bool UAiBridgeWebSocketSubsystem::IsWrapped(const TArray<uint8>& Data)
+{
+    return Data.Num() > 2 && Data[0] == AUDIO_DATA_MARKER;
 }

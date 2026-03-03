@@ -89,5 +89,12 @@ private:
 	
 	void PreFetchJwtToken();
 	
+	static constexpr uint8 AUDIO_DATA_MARKER = 0xAD;
 	
+	void UnwrapAudioChunk(
+		const TArray<uint8>& Data,
+		FString& OutRequestId,
+		TArray<uint8>& OutAudioData);
+	
+	bool IsWrapped(const TArray<uint8>& Data);
 };
