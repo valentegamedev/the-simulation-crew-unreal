@@ -547,7 +547,11 @@ bool UAiBridgeWebSocketSubsystem::ParseOpusHead(const TArray<uint8>& Packet)
         return false;
     } else
     {
+        FString Signature = FString(8, UTF8_TO_TCHAR(reinterpret_cast<const char*>(Packet.GetData())));
         
+        UE_LOG(LogTemp, Error,
+            TEXT("[OggOpusParser] OpusHead signature OK: %s"),
+            *Signature);
     }
 
     // Parse header fields
