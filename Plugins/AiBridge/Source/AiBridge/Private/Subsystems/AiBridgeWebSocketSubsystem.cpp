@@ -221,6 +221,7 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
                     
                     ParseOpusHead(AudioData);
                     
+                    OnBinaryRawMessage.Broadcast(Data);
                     OnBinaryMessage.Broadcast(AudioData);
                 };
             };

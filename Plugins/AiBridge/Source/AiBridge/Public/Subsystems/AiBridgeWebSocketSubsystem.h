@@ -62,6 +62,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
 	FOnWebSocketBinaryMessage OnBinaryMessage;
 	
+	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
+	FOnWebSocketBinaryMessage OnBinaryRawMessage;
 
 	void EnsureConnection(TFunction<void(bool)> Callback);
 	
