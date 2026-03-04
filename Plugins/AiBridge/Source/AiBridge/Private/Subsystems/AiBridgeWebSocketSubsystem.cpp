@@ -322,6 +322,11 @@ void UAiBridgeWebSocketSubsystem::SendSomethingCrazy()
     WebSocket->SendText(JsonString);
 }
 
+void UAiBridgeWebSocketSubsystem::ProcessFakeBinaryData(TArray<uint8> Data)
+{
+    WebSocket->OnBinaryMessage(Data);
+}
+
 void UAiBridgeWebSocketSubsystem::SendSomething()
 {
     FString JsonString = TEXT(R"(

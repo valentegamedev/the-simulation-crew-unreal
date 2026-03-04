@@ -71,6 +71,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void SendSomethingCrazy();
 	
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void ProcessFakeBinaryData(TArray<uint8> Data);
+	
 private:
 	
 	FString ApiBaseUrl = "https://api-orchestrator-service-936031000571.europe-west4.run.app";
@@ -111,4 +115,6 @@ private:
 	uint16 PreSkip;
 	int32 SampleRate;
 	int16 OutputGain;
+	
+	
 };
