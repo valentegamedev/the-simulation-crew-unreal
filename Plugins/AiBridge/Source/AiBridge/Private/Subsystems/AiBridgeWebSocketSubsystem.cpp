@@ -6,6 +6,7 @@
 #include "WebSocketsModule.h"
 #include "Authentication/JwtAuthenticationService.h"
 #include "WebSocket/WebSocketConnection.h"
+#include "Util/OggDebugUtils.h"
 
 void UAiBridgeWebSocketSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -218,7 +219,7 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
                         UE_LOG(LogTemp, Log, TEXT("[%s] Additional OGG header [%d] - part of ongoing stream"), *PersonaName, ReceivedStreamCount);
                     }
                 
-                    
+                    OggDebugUtils::DumpOggPage(AudioData);
                     ParseOpusHead(AudioData);
                     
                     OnBinaryRawMessage.Broadcast(Data);
