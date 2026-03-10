@@ -219,9 +219,9 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
                         UE_LOG(LogTemp, Log, TEXT("[%s] Additional OGG header [%d] - part of ongoing stream"), *PersonaName, ReceivedStreamCount);
                     }
                 
+                    //OggDebugUtils::DumpOggPage(AudioData);
+                    //ParseOpusHead(AudioData);
                     OggDebugUtils::DumpOggPage(AudioData);
-                    ParseOpusHead(AudioData);
-                    
                     OnBinaryRawMessage.Broadcast(Data);
                     OnBinaryMessage.Broadcast(AudioData);
                 };
