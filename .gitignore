@@ -7,9 +7,10 @@ build/
 intermediate/
 PACKPLUGIN/
 COMPPLUGIN/
-saved/
 *.orig
 *.sln
 *.xlsx
 .idea
+saved/*
+!saved/SaveGames/
 LUMC.sln.DotSettings.user
