@@ -10,7 +10,7 @@ class AIBRIDGE_API UJwtAuthenticationService : public UObject
 	GENERATED_BODY()
 
 public:
-	void Initialize(const FString& InBaseUrl);
+	void Initialize(const FString InBaseUrl);
 
 	// Async-style callback instead of Task<string>
 	void GetAuthToken(

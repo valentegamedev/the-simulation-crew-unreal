@@ -2,7 +2,7 @@
 #include "Json.h"
 #include "JsonUtilities.h"
 
-void UJwtAuthenticationService::Initialize(const FString& InBaseUrl)
+void UJwtAuthenticationService::Initialize(const FString InBaseUrl)
 {
     BaseUrl = InBaseUrl.IsEmpty() ? TEXT("https://conversation-api.com") : InBaseUrl;
 }
@@ -28,6 +28,8 @@ void UJwtAuthenticationService::GetAuthToken(
 
     FString Url = BaseUrl + TEXT("/api/auth/token"); // adjust endpoint
 
+    UE_LOG(LogTemp, Warning, TEXT("[%s] Auth Url: %s"), *StaticClass()->GetName(), *Url);
+    
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request =
         FHttpModule::Get().CreateRequest();
 

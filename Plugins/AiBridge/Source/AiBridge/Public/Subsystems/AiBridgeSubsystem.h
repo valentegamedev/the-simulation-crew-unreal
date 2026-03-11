@@ -6,7 +6,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "AiBridgeSubsystem.generated.h"
 
-class  IApiKeyProvider;
+
+class UJwtAuthenticationService;
 
 /**
  * 
@@ -19,8 +20,12 @@ class AIBRIDGE_API UAiBridgeSubsystem : public UGameInstanceSubsystem
 	FString ApiKeyProvider;
 	FString ApiBaseUrl;
 	
+	UPROPERTY()
+	UJwtAuthenticationService* AuthService;
+	bool bJwtReady;
+	FString CachedToken;
+	
 private:
-	// Begin USubsystem
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	

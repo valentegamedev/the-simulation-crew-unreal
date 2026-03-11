@@ -14,7 +14,6 @@ class AIBRIDGE_API ARequestOrchestrator : public AActor
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Default, meta = (AllowPrivateAccess = "true"))
 	FString ApiBaseUrl;
-	
 public:	
 	// Sets default values for this actor's properties
 	ARequestOrchestrator();

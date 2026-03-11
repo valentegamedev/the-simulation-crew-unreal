@@ -175,7 +175,6 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
             WebSocket = NewObject<UWebSocketConnection>(this);
 
             
-            
             // Bind events
             WebSocket->OnTextMessage = [this](const FString& Msg)
             {

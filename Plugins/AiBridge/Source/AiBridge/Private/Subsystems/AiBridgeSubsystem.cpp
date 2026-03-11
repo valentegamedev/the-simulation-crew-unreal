@@ -2,11 +2,12 @@
 
 
 #include "Subsystems/AiBridgeSubsystem.h"
-#include "Auth/ApiKeyProvider.h"
+#include "Authentication/JwtAuthenticationService.h"
 
 void UAiBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	AuthService = NewObject<UJwtAuthenticationService>(this);
 	
 	UE_LOG(LogTemp, Warning, TEXT("[%s] AiBridge Initialized."), *StaticClass()->GetName());
 }
@@ -28,6 +29,26 @@ void UAiBridgeSubsystem::Connect(FString pApiKeyProvider, FString pApiBaseUrl)
 	}
 	UE_LOG(LogTemp, Warning, TEXT("[%s] ApiKey is valid."), *StaticClass()->GetName());
 	
+	if (!AuthService)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] JwtAuthenticationService not assigned."), *StaticClass()->GetName());
+		return;
+	}
+	AuthService->Initialize(ApiBaseUrl);
+	UE_LOG(LogTemp, Warning, TEXT("[%s] JwtAuthenticationService Initialized on ApiBaseUrl = %s"), *StaticClass()->GetName(), *ApiBaseUrl);
+	
+	AuthService->GetAuthToken(
+		"UnifiedConnection",
+		"player",
+		ApiKeyProvider,
+		[this](const FString& Token)
+		{
+			CachedToken = Token;
+			bJwtReady = !Token.IsEmpty();
+
+			UE_LOG(LogTemp, Warning, TEXT("[%s] JWT ready. Token: %s"), *StaticClass()->GetName(), *CachedToken);
+		}
+	);
 }
 
 void UAiBridgeSubsystem::Disconnect()
