@@ -110,6 +110,7 @@ void UAiBridgeSubsystem::Connect(FString pApiKeyProvider, FString pApiBaseUrl)
 			
 			EnsureConnection([this](bool Success) { 
 				UE_LOG(LogTemp, Warning, TEXT("[%s] Connected to server: %d"), *StaticClass()->GetName(), Success);
+				OnConnected.Broadcast();
 			});
 		}
 	);

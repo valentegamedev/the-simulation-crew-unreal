@@ -6,6 +6,10 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "AiBridgeSubsystem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDisconnected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTextMessage, const FString&, Message);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBinaryMessage, const TArray<uint8>&, Data);
 
 class UJwtAuthenticationService;
 class UWebSocketConnection;
@@ -29,6 +33,19 @@ class AIBRIDGE_API UAiBridgeSubsystem : public UGameInstanceSubsystem
 	bool bJwtReady;
 	FString CachedToken;
 	bool bIsConnecting = false;
+public:
+	// Events
+	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
+	FOnConnected OnConnected;
+
+	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
+	FOnDisconnected OnDisconnected;
+
+	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
+	FOnTextMessage OnTextMessage;
+
+	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
+	FOnBinaryMessage OnBinaryMessage;
 	
 private:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
