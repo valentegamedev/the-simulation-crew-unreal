@@ -47,8 +47,6 @@ void ARequestOrchestrator::Connect(TScriptInterface<IApiKeyProvider> ApiKeyProvi
 	{
 		AiBridgeSubsystem->Connect(ApiKey, ApiBaseUrl);
 	}
-	
-	UE_LOG(LogTemp, Warning, TEXT("[%s] Connection established successfully."), *StaticClass()->GetName());
 }
 
 void ARequestOrchestrator::Disconnect()

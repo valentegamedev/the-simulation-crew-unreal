@@ -226,7 +226,7 @@ void UAiBridgeWebSocketSubsystem::EnsureConnection(TFunction<void(bool)> Callbac
                 };
             };
             
-            WebSocket->OnDisconnected = [this]()
+            WebSocket->OnDisconnected = []()
             {
                 UE_LOG(LogTemp, Log, TEXT("[disconnect]"));
             };

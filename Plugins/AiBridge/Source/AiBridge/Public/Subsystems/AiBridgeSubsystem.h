@@ -8,7 +8,7 @@
 
 
 class UJwtAuthenticationService;
-
+class UWebSocketConnection;
 /**
  * 
  */
@@ -22,16 +22,25 @@ class AIBRIDGE_API UAiBridgeSubsystem : public UGameInstanceSubsystem
 	
 	UPROPERTY()
 	UJwtAuthenticationService* AuthService;
+	
+	UPROPERTY()
+	UWebSocketConnection* WebSocket;
+	
 	bool bJwtReady;
 	FString CachedToken;
+	bool bIsConnecting = false;
 	
 private:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	
+	void SendWakeUpCallAsync() const;
+	
 public:
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void Connect(FString ApiKeyProvider, FString ApiBaseUrl);
+	
+	void EnsureConnection(TFunction<void(bool)> Callback);
 
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void Disconnect();

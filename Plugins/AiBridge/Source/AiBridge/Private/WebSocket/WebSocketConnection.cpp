@@ -32,8 +32,9 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 	WebSocket = FWebSocketsModule::Get().CreateWebSocket(Url);
 
 	//WebSocket->OnConnected().AddRaw(this, &UWebSocketConnection::HandleConnected);
-	WebSocket->OnConnected().AddLambda([this]()
+	WebSocket->OnConnected().AddLambda([this, Callback]()
 	{
+		Callback(true);
 		HandleConnected();
 	});
 
@@ -50,12 +51,14 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 	WebSocket->OnClosed().AddLambda([this](int32 StatusCode, const FString& Reason, bool bWasClean)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnClosed"));
-		//HandleClosed(StatusCode, Reason, bWasClean);
+		//Disconnect();
+		HandleClosed(StatusCode, Reason, bWasClean);
 	});
 	
 	WebSocket->OnMessage().AddLambda(
 		[this](const FString& Msg)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[%s] Raw Message: %s"), *StaticClass()->GetName(), *Msg);
 			if (OnTextMessage) OnTextMessage(Msg);
 		}
 	);
@@ -72,30 +75,17 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 
 	WebSocket->Connect();
 
-	// Simulate "await connection with timeout"
-	FTimerHandle Timer;
-	GWorld->GetTimerManager().SetTimer(
-		Timer,
-		[this, Callback]()
-		{
-			bool bSuccess = IsConnected();
-			bIsConnecting = false;
-			Callback(bSuccess);
-		},
-		10.0f,
-		false
-	);
 }
 
 void UWebSocketConnection::Disconnect()
 {
+	UE_LOG(LogTemp, Log, TEXT("UWebSocketConnection::Disconnect"));
 	bAutoReconnect = false;
 	bIsDisconnecting = true;
 
 	if (WebSocket.IsValid())
 	{
 		WebSocket->Close();
-		WebSocket = nullptr;
 	}
 }
 
@@ -115,13 +105,29 @@ void UWebSocketConnection::HandleConnected()
 
 void UWebSocketConnection::HandleClosed(int32 StatusCode, const FString& Reason, bool bWasClean)
 {
+	
 	if (bVerbose)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("🔌 Disconnected: %d"), StatusCode);
 	}
 
-	if (OnDisconnected) OnDisconnected();
+	
 
+	if (WebSocket.IsValid())
+	{
+		WebSocket->OnConnected().Clear();
+		WebSocket->OnClosed().Clear();
+		WebSocket->OnMessage().Clear();
+		WebSocket->OnConnectionError().Clear();
+		WebSocket->OnBinaryMessage().Clear();
+	}
+	
+	
+	
+	if (OnDisconnected) OnDisconnected();
+	
+	WebSocket = nullptr;
+	
 	if (bAutoReconnect)
 	{
 		//AttemptReconnect();
