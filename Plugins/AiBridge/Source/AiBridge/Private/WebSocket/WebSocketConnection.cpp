@@ -75,6 +75,7 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 
 	WebSocket->Connect();
 
+	
 }
 
 void UWebSocketConnection::Disconnect()

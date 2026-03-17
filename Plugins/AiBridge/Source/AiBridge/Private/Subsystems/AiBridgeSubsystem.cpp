@@ -110,10 +110,10 @@ void UAiBridgeSubsystem::Connect(FString pApiKeyProvider, FString pApiBaseUrl)
 			
 			EnsureConnection([this](bool Success) { 
 				UE_LOG(LogTemp, Warning, TEXT("[%s] Connected to server: %d"), *StaticClass()->GetName(), Success);
-				OnConnected.Broadcast();
 			});
 		}
 	);
+	
 }
 
 void UAiBridgeSubsystem::EnsureConnection(TFunction<void(bool)> Callback)
@@ -193,6 +193,7 @@ void UAiBridgeSubsystem::EnsureConnection(TFunction<void(bool)> Callback)
                     	UE_LOG(LogTemp, Warning, TEXT("[%s] Connected (%.0f ms total)"), *StaticClass()->GetName(), Total);
 
                         bIsConnecting = false;
+                    	OnConnected.Broadcast();
                         Callback(true);
                     }
                     else
