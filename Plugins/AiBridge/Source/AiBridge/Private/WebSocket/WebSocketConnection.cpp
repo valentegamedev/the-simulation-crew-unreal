@@ -47,6 +47,7 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 	{
 		if (!WeakThis.IsValid()) return;
 		
+		WeakThis->bIsDisconnecting = false;
 		WeakThis->HandleConnected();
 		Callback(true);
 	});
@@ -87,17 +88,18 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 	);
 
 	WebSocket->Connect();
-
 	
 }
 
 void UWebSocketConnection::Disconnect()
 {
 	UE_LOG(LogTemp, Log, TEXT("UWebSocketConnection::Disconnect"));
+	
 	bAutoReconnect = false;
 	bIsDisconnecting = true;
 
-	if (WebSocket != nullptr)
+	GetWorld()->GetTimerManager().ClearTimer(ReconnectTimerHandle);
+	if (WebSocket.IsValid())
 	{
 		WebSocket->Close();
 	}
@@ -143,7 +145,7 @@ void UWebSocketConnection::HandleClosed(int32 StatusCode, const FString& Reason,
 	
 	if (bAutoReconnect)
 	{
-		//AttemptReconnect();
+		AttemptReconnect();
 	}
 }
 
@@ -156,7 +158,7 @@ void UWebSocketConnection::HandleError(const FString& Error)
 
 void UWebSocketConnection::HandleOnMessage(const FString& Msg)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[%s] Raw Message: %s"), *StaticClass()->GetName(), *Msg);
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Message: %s"), *StaticClass()->GetName(), *Msg);
 	if (OnTextMessage) OnTextMessage(Msg);
 }
 
@@ -165,13 +167,68 @@ void UWebSocketConnection::HandleOnBinary(const void* Data, SIZE_T Size, bool is
 	TArray<uint8> Bytes;
 	Bytes.Append((uint8*)Data, Size);
 
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Binary Data: %d bytes"), *StaticClass()->GetName(), Bytes.Num());
+	
 	if (OnBinaryMessage) OnBinaryMessage(Bytes);
+}
+
+void UWebSocketConnection::BindDelegates()
+{
+	TWeakObjectPtr<UWebSocketConnection> WeakThis(this);
+	
+	WebSocket->OnConnected().AddLambda([WeakThis]()
+	{
+		if (!WeakThis.IsValid()) return;
+		
+		WeakThis->bIsDisconnecting = false;
+		WeakThis->HandleConnected();
+	});
+
+	WebSocket->OnConnectionError().AddLambda(
+		[WeakThis](const FString& Error)
+		{
+			if (!WeakThis.IsValid()) return;
+			
+			WeakThis->HandleError(Error);
+		}
+	);
+	
+	WebSocket->OnClosed().AddLambda([WeakThis](int32 StatusCode, const FString& Reason, bool bWasClean)
+	{
+		if (!WeakThis.IsValid()) return;
+		
+		WeakThis->HandleClosed(StatusCode, Reason, bWasClean);
+	});
+	
+	WebSocket->OnMessage().AddLambda(
+		[WeakThis](const FString& Msg)
+		{
+			if (!WeakThis.IsValid()) return;
+			
+			WeakThis->HandleOnMessage(Msg);
+		}
+	);
+
+	WebSocket->OnBinaryMessage().AddLambda(
+		[WeakThis](const void* Data, SIZE_T Size, bool isLast)
+		{
+			if (!WeakThis.IsValid()) return;
+			
+			WeakThis->HandleOnBinary(Data, Size, isLast);
+		}
+	);
 }
 
 void UWebSocketConnection::AttemptReconnect()
 {
-	if (bIsReconnecting || ReconnectAttempts >= MaxReconnectAttempts)
+	if (bIsDisconnecting) return;
+
+	if (ReconnectAttempts >= MaxReconnectAttempts)
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ Max reconnect attempts reached"));
+		bIsReconnecting = false;
 		return;
+	}
 
 	bIsReconnecting = true;
 	ReconnectAttempts++;
@@ -180,21 +237,66 @@ void UWebSocketConnection::AttemptReconnect()
 
 	UE_LOG(LogTemp, Warning, TEXT("Reconnect attempt %d in %.1fs"), ReconnectAttempts, Delay);
 
-	FTimerHandle Timer;
-
-	GWorld->GetTimerManager().SetTimer(
-		Timer,
-		[this]()
+	TWeakObjectPtr<UWebSocketConnection> WeakThis(this);
+	
+	UWorld* World = nullptr;
+	
+	if (const UObject* Outer = GetOuter())
+	{
+		World = Outer->GetWorld();
+	}
+	if (World == nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("World is null"));
+		return;
+	} else
+	{
+		UE_LOG(LogTemp, Log, TEXT("World is not null"));
+	}
+	World->GetTimerManager().SetTimer(
+		ReconnectTimerHandle,
+		[WeakThis]()
 		{
-			bIsReconnecting = false;
-			/*
-			Connect(LastUrl, JwtToken,
-				[](bool bSuccess)
+			UE_LOG(LogTemp, Log, TEXT("✅ Trying to Reconnected"));
+			
+			if (!WeakThis.IsValid()) return;
+
+			WeakThis->bIsConnecting = false;
+
+			WeakThis->Connect(
+				WeakThis->LastUrl,
+				TEXT("Reconnect"),
+				WeakThis->JwtToken,
+				[WeakThis](bool bSuccess)
 				{
-					// handled internally
-				});
-			*/
-			CurrentReconnectDelay = FMath::Min(CurrentReconnectDelay * 2.f, ReconnectMaxDelay);
+					if (!WeakThis.IsValid()) return;
+
+					if (bSuccess)
+					{
+						UE_LOG(LogTemp, Log, TEXT("✅ Reconnected"));
+
+						WeakThis->bIsReconnecting = false;
+						WeakThis->ReconnectAttempts = 0;
+						WeakThis->CurrentReconnectDelay = WeakThis->ReconnectBaseDelay;
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("❌ Reconnect failed"));
+
+						// exponential backoff
+						WeakThis->CurrentReconnectDelay = FMath::Min(
+							WeakThis->CurrentReconnectDelay * 2.0f,
+							WeakThis->ReconnectMaxDelay
+						);
+
+						WeakThis->bIsReconnecting = false;
+
+						// try again
+						WeakThis->AttemptReconnect();
+					}
+				}
+			);
+
 		},
 		Delay,
 		false

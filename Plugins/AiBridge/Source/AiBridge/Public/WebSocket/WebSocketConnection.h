@@ -44,13 +44,14 @@ private:
 	bool bIsDisconnecting = false;
 
 	// Reconnect
-	float ReconnectBaseDelay;
-	float ReconnectMaxDelay;
-	float CurrentReconnectDelay;
-	int32 MaxReconnectAttempts;
+	float ReconnectBaseDelay = 1.0f;
+	float ReconnectMaxDelay = 10.0f;
+	float CurrentReconnectDelay = 1.0f;
+	int32 MaxReconnectAttempts = 10;
 	int32 ReconnectAttempts = 0;
 	bool bIsReconnecting = false;
 	bool bAutoReconnect = true;
+	FTimerHandle ReconnectTimerHandle;
 
 	// Session
 	FString LastUrl;
@@ -65,6 +66,8 @@ private:
 	void HandleOnMessage(const FString& Msg);
 	void HandleOnBinary(const void* Data, SIZE_T Size, bool isLast);
 	
+	
+	void BindDelegates();
 	void AttemptReconnect();
 
 	FString SanitizeUrl(const FString& Url);
