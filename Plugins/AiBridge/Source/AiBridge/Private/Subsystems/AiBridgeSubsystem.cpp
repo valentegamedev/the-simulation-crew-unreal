@@ -8,7 +8,10 @@
 void UAiBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	AuthService = NewObject<UJwtAuthenticationService>(this);
+	
+	if (!IsValid(AuthService)) { 
+		AuthService = NewObject<UJwtAuthenticationService>(this);
+	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("[%s] AiBridge Initialized."), *StaticClass()->GetName());
 }
@@ -167,8 +170,11 @@ void UAiBridgeSubsystem::EnsureConnection(TFunction<void(bool)> Callback)
             );
         	
             // Create WS
-            WebSocket = NewObject<UWebSocketConnection>(this);
-
+        	if (!IsValid(WebSocket))
+        	{
+        		WebSocket = NewObject<UWebSocketConnection>(this);
+        	}
+        	
         	double WsStart = FPlatformTime::Seconds();
         	
         	WebSocket->OnDisconnected = [this]()

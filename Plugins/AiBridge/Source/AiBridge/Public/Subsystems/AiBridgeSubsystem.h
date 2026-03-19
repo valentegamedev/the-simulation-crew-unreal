@@ -25,10 +25,10 @@ class AIBRIDGE_API UAiBridgeSubsystem : public UGameInstanceSubsystem
 	FString ApiBaseUrl;
 	
 	UPROPERTY()
-	UJwtAuthenticationService* AuthService;
+	TObjectPtr<UJwtAuthenticationService> AuthService;
 	
 	UPROPERTY()
-	UWebSocketConnection* WebSocket;
+	TObjectPtr<UWebSocketConnection> WebSocket;
 	
 	bool bJwtReady;
 	FString CachedToken;

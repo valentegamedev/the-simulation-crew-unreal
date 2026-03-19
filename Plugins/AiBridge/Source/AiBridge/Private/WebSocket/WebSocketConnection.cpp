@@ -6,6 +6,16 @@
 #include "WebSocketsModule.h"
 
 
+UWebSocketConnection::~UWebSocketConnection()
+{
+	if (WebSocket.IsValid()) {
+		WebSocket->OnConnected().RemoveAll(this);
+		WebSocket->OnConnectionError().RemoveAll(this);
+		WebSocket->OnClosed().RemoveAll(this);
+		WebSocket->OnMessage().RemoveAll(this);
+		WebSocket->OnBinaryMessage().RemoveAll(this);
+	}
+}
 
 bool UWebSocketConnection::IsConnected() const
 {
@@ -30,46 +40,49 @@ void UWebSocketConnection::Connect(const FString& Url, const FString& Connection
 	UE_LOG(LogTemp, Log, TEXT("🔌 Connecting to %s"), *SafeUrl);
 
 	WebSocket = FWebSocketsModule::Get().CreateWebSocket(Url);
-
-	//WebSocket->OnConnected().AddRaw(this, &UWebSocketConnection::HandleConnected);
-	WebSocket->OnConnected().AddLambda([this, Callback]()
+	
+	TWeakObjectPtr<UWebSocketConnection> WeakThis(this);
+	
+	WebSocket->OnConnected().AddLambda([WeakThis, Callback]()
 	{
+		if (!WeakThis.IsValid()) return;
+		
+		WeakThis->HandleConnected();
 		Callback(true);
-		HandleConnected();
 	});
 
 	WebSocket->OnConnectionError().AddLambda(
-		[this, Callback](const FString& Error)
+		[WeakThis, Callback](const FString& Error)
 		{
-			HandleError(Error);
-			bIsConnecting = false;
+			if (!WeakThis.IsValid()) return;
+			
+			WeakThis->HandleError(Error);
 			Callback(false);
 		}
 	);
-
-	//WebSocket->OnClosed().AddRaw(this, &UWebSocketConnection::HandleClosed);
-	WebSocket->OnClosed().AddLambda([this](int32 StatusCode, const FString& Reason, bool bWasClean)
+	
+	WebSocket->OnClosed().AddLambda([WeakThis](int32 StatusCode, const FString& Reason, bool bWasClean)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnClosed"));
-		//Disconnect();
-		HandleClosed(StatusCode, Reason, bWasClean);
+		if (!WeakThis.IsValid()) return;
+		
+		WeakThis->HandleClosed(StatusCode, Reason, bWasClean);
 	});
 	
 	WebSocket->OnMessage().AddLambda(
-		[this](const FString& Msg)
+		[WeakThis](const FString& Msg)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[%s] Raw Message: %s"), *StaticClass()->GetName(), *Msg);
-			if (OnTextMessage) OnTextMessage(Msg);
+			if (!WeakThis.IsValid()) return;
+			
+			WeakThis->HandleOnMessage(Msg);
 		}
 	);
 
 	WebSocket->OnBinaryMessage().AddLambda(
-		[this](const void* Data, SIZE_T Size, bool isLast)
+		[WeakThis](const void* Data, SIZE_T Size, bool isLast)
 		{
-			TArray<uint8> Bytes;
-			Bytes.Append((uint8*)Data, Size);
-
-			if (OnBinaryMessage) OnBinaryMessage(Bytes);
+			if (!WeakThis.IsValid()) return;
+			
+			WeakThis->HandleOnBinary(Data, Size, isLast);
 		}
 	);
 
@@ -106,23 +119,21 @@ void UWebSocketConnection::HandleConnected()
 
 void UWebSocketConnection::HandleClosed(int32 StatusCode, const FString& Reason, bool bWasClean)
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnClosed"));
 	
 	if (bVerbose)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("🔌 Disconnected: %d"), StatusCode);
 	}
-
 	
-
 	if (WebSocket.IsValid())
 	{
-		WebSocket->OnConnected().Clear();
-		WebSocket->OnClosed().Clear();
-		WebSocket->OnMessage().Clear();
-		WebSocket->OnConnectionError().Clear();
-		WebSocket->OnBinaryMessage().Clear();
+		WebSocket->OnConnected().RemoveAll(this);
+		WebSocket->OnConnectionError().RemoveAll(this);
+		WebSocket->OnClosed().RemoveAll(this);
+		WebSocket->OnMessage().RemoveAll(this);
+		WebSocket->OnBinaryMessage().RemoveAll(this);
 	}
-	
 	
 	
 	if (OnDisconnected) OnDisconnected();
@@ -138,8 +149,22 @@ void UWebSocketConnection::HandleClosed(int32 StatusCode, const FString& Reason,
 void UWebSocketConnection::HandleError(const FString& Error)
 {
 	UE_LOG(LogTemp, Error, TEXT("WebSocket error: %s"), *Error);
-
+	bIsConnecting = false;
 	if (OnError) OnError(Error);
+}
+
+void UWebSocketConnection::HandleOnMessage(const FString& Msg)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Raw Message: %s"), *StaticClass()->GetName(), *Msg);
+	if (OnTextMessage) OnTextMessage(Msg);
+}
+
+void UWebSocketConnection::HandleOnBinary(const void* Data, SIZE_T Size, bool isLast)
+{
+	TArray<uint8> Bytes;
+	Bytes.Append((uint8*)Data, Size);
+
+	if (OnBinaryMessage) OnBinaryMessage(Bytes);
 }
 
 void UWebSocketConnection::AttemptReconnect()
@@ -174,6 +199,7 @@ void UWebSocketConnection::AttemptReconnect()
 		false
 	);
 }
+
 
 void UWebSocketConnection::SendText(const FString& Message)
 {

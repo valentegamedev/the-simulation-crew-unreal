@@ -16,6 +16,9 @@ class AIBRIDGE_API UWebSocketConnection : public UObject
 	GENERATED_BODY()
 public:
 	
+	
+	~UWebSocketConnection();
+	
 	// State
 	bool IsConnected() const;
 	bool IsConnecting() const { return bIsConnecting; }
@@ -59,6 +62,9 @@ private:
 	void HandleConnected();
 	void HandleClosed(int32 StatusCode, const FString& Reason, bool bWasClean);
 	void HandleError(const FString& Error);
+	void HandleOnMessage(const FString& Msg);
+	void HandleOnBinary(const void* Data, SIZE_T Size, bool isLast);
+	
 	void AttemptReconnect();
 
 	FString SanitizeUrl(const FString& Url);
