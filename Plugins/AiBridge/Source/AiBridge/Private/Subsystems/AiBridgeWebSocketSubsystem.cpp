@@ -23,7 +23,6 @@ void UAiBridgeWebSocketSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 void UAiBridgeWebSocketSubsystem::Deinitialize()
 {
     UE_LOG(LogTemp, Log, TEXT("UAiBridgeWebSocketSubsystem Deinitialized"));
-    Disconnect();
     Super::Deinitialize();
 }
 

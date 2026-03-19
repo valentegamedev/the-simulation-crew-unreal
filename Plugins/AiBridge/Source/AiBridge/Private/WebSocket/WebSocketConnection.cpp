@@ -97,7 +97,7 @@ void UWebSocketConnection::Disconnect()
 	bAutoReconnect = false;
 	bIsDisconnecting = true;
 
-	if (WebSocket.IsValid())
+	if (WebSocket != nullptr)
 	{
 		WebSocket->Close();
 	}
@@ -135,10 +135,11 @@ void UWebSocketConnection::HandleClosed(int32 StatusCode, const FString& Reason,
 		WebSocket->OnBinaryMessage().RemoveAll(this);
 	}
 	
+	WebSocket = nullptr;
 	
 	if (OnDisconnected) OnDisconnected();
 	
-	WebSocket = nullptr;
+	
 	
 	if (bAutoReconnect)
 	{
