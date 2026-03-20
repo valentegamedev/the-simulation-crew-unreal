@@ -44,9 +44,9 @@ private:
 	bool bIsDisconnecting = false;
 
 	// Reconnect
-	float ReconnectBaseDelay = 1.0f;
+	float ReconnectBaseDelay = .5f;
 	float ReconnectMaxDelay = 10.0f;
-	float CurrentReconnectDelay = 1.0f;
+	float CurrentReconnectDelay = .5f;
 	int32 MaxReconnectAttempts = 10;
 	int32 ReconnectAttempts = 0;
 	bool bIsReconnecting = false;
