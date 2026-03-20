@@ -19,12 +19,21 @@ void UAiBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		
 		TWeakObjectPtr<UAiBridgeSubsystem> WeakThis = this;
 		
+		OpusParser->OnStreamStart.BindLambda(
+			[WeakThis](uint32 Serial, const TArray<uint8>& Page)
+			{
+				if (!WeakThis.IsValid()) return;
+				
+				auto& Buffer = WeakThis->OpusPages.FindOrAdd(Serial); // reference
+			});
+		
 		OpusParser->OnPageReceived.BindLambda(
 			[WeakThis](uint32 Serial, const TArray<uint8>& Page)
 			{
 				if (!WeakThis.IsValid()) return;
 				
-				WeakThis->OpusPages.Append(Page);
+				auto& Buffer = WeakThis->OpusPages.FindOrAdd(Serial); // reference
+				Buffer.Append(Page);
 			});
 		
 		OpusParser->OnStreamEnd.BindLambda(
@@ -32,7 +41,8 @@ void UAiBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 			{
 				if (!WeakThis.IsValid()) return;
 				
-				WeakThis->HandleOpusPages();
+				WeakThis->HandleOpusPages(Serial);
+				WeakThis->OpusPages.FindAndRemoveChecked(Serial);
 			});
 	}
 	
@@ -170,10 +180,10 @@ void UAiBridgeSubsystem::HandleOnBinaryMessage(const TArray<uint8>& Data)
 	OnBinaryMessage.Broadcast(AudioData);
 }
 
-void UAiBridgeSubsystem::HandleOpusPages()
+void UAiBridgeSubsystem::HandleOpusPages(uint32 Serial)
 {
-	OnOpusData.Broadcast(OpusPages);
-	OpusPages.Empty();
+	auto& Buffer = OpusPages.FindOrAdd(Serial); // reference
+	OnOpusData.Broadcast(Buffer);
 }
 
 void UAiBridgeSubsystem::Connect(FString pApiKeyProvider, FString pApiBaseUrl)

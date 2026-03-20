@@ -24,7 +24,7 @@ class AIBRIDGE_API UAiBridgeSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 	
-	TArray<uint8> OpusPages;
+	TMap<uint32, TArray<uint8>> OpusPages;
 	
 	FString ApiKeyProvider;
 	FString ApiBaseUrl;
@@ -69,7 +69,7 @@ private:
 	
 	void HandleOnBinaryMessage(const TArray<uint8>& Data);
 	
-	void HandleOpusPages();
+	void HandleOpusPages(uint32 Serial);
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
