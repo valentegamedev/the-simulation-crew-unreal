@@ -3,16 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#include "OggOpusStreamParser.generated.h"
 DECLARE_DELEGATE_TwoParams(FOnOggStreamStart, uint32 /*Serial*/, const TArray<uint8>& /*Page*/);
 DECLARE_DELEGATE_TwoParams(FOnOggPageReceived, uint32 /*Serial*/, const TArray<uint8>& /*Page*/);
 DECLARE_DELEGATE_OneParam(FOnOggStreamEnd, uint32 /*Serial*/);
 
-class FOggOpusStreamParser
+UCLASS()
+class AIBRIDGE_API UOggOpusStreamParser: public UObject
 {
+	GENERATED_BODY()
 public:
 
-	void PushBytes(const uint8* Data, int32 Size);
+	void PushBytes(TArray<uint8> Data);
 
 	FOnOggStreamStart OnStreamStart;
 	FOnOggPageReceived OnPageReceived;

@@ -10,9 +10,12 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnected);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDisconnected);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTextMessage, const FString&, Message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBinaryMessage, const TArray<uint8>&, Data);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOpusData, const TArray<uint8>&, Data);
+
 
 class UJwtAuthenticationService;
 class UWebSocketConnection;
+class UOggOpusStreamParser;
 /**
  * 
  */
@@ -20,6 +23,8 @@ UCLASS()
 class AIBRIDGE_API UAiBridgeSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
+	
+	TArray<uint8> OpusPages;
 	
 	FString ApiKeyProvider;
 	FString ApiBaseUrl;
@@ -30,9 +35,14 @@ class AIBRIDGE_API UAiBridgeSubsystem : public UGameInstanceSubsystem
 	UPROPERTY()
 	TObjectPtr<UWebSocketConnection> WebSocket;
 	
+	UPROPERTY()
+	TObjectPtr<UOggOpusStreamParser> OpusParser;
+	
 	bool bJwtReady;
 	FString CachedToken;
 	bool bIsConnecting = false;
+	
+	static constexpr uint8 AUDIO_DATA_MARKER = 0xAD;
 public:
 	// Events
 	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
@@ -47,11 +57,19 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
 	FOnBinaryMessage OnBinaryMessage;
 	
+	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
+	FOnOpusData OnOpusData;
+	
 private:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	
 	void SendWakeUpCallAsync() const;
+	void UnwrapAudioChunk(const TArray<uint8>& Data, FString& OutRequestId, TArray<uint8>& OutAudioData);
+	
+	void HandleOnBinaryMessage(const TArray<uint8>& Data);
+	
+	void HandleOpusPages();
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
@@ -61,4 +79,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void Disconnect();
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void ProcessFakeBinaryData(TArray<uint8> Data);
 };

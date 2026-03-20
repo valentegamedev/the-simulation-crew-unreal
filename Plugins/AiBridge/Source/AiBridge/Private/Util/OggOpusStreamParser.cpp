@@ -3,9 +3,9 @@
 
 #include "Util/OggOpusStreamParser.h"
 
-void FOggOpusStreamParser::PushBytes(const uint8* Data, int32 Size)
+void UOggOpusStreamParser::PushBytes(TArray<uint8> Data)
 {
-	Buffer.Append(Data, Size);
+	Buffer.Append(Data);
 
 	while (true)
 	{
@@ -22,6 +22,7 @@ void FOggOpusStreamParser::PushBytes(const uint8* Data, int32 Size)
 
 		if (bBOS)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[%s] Beginning of Opus stream."), *StaticClass()->GetName());
 			ActiveStreams.Add(Serial);
 
 			if (OnStreamStart.IsBound())
@@ -29,10 +30,12 @@ void FOggOpusStreamParser::PushBytes(const uint8* Data, int32 Size)
 		}
 
 		if (OnPageReceived.IsBound())
+			UE_LOG(LogTemp, Warning, TEXT("[%s] Opus page parsed."), *StaticClass()->GetName());
 			OnPageReceived.Execute(Serial, Page);
 
 		if (bEOS)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[%s] End of Opus stream."), *StaticClass()->GetName());
 			ActiveStreams.Remove(Serial);
 
 			if (OnStreamEnd.IsBound())
@@ -41,7 +44,7 @@ void FOggOpusStreamParser::PushBytes(const uint8* Data, int32 Size)
 	}
 }
 
-int32 FOggOpusStreamParser::FindCapturePattern()
+int32 UOggOpusStreamParser::FindCapturePattern()
 {
 	for (int32 i = 0; i <= Buffer.Num() - 4; i++)
 	{
@@ -57,7 +60,7 @@ int32 FOggOpusStreamParser::FindCapturePattern()
 	return INDEX_NONE;
 }
 
-bool FOggOpusStreamParser::TryExtractPage(TArray<uint8>& OutPage)
+bool UOggOpusStreamParser::TryExtractPage(TArray<uint8>& OutPage)
 {
 	int32 CaptureIndex = FindCapturePattern();
 
@@ -94,7 +97,7 @@ bool FOggOpusStreamParser::TryExtractPage(TArray<uint8>& OutPage)
 	return true;
 }
 
-uint32 FOggOpusStreamParser::ParseSerial(const TArray<uint8>& Page)
+uint32 UOggOpusStreamParser::ParseSerial(const TArray<uint8>& Page)
 {
 	return
 		Page[14] |
@@ -103,7 +106,7 @@ uint32 FOggOpusStreamParser::ParseSerial(const TArray<uint8>& Page)
 		(Page[17] << 24);
 }
 
-uint8 FOggOpusStreamParser::ParseHeaderType(const TArray<uint8>& Page)
+uint8 UOggOpusStreamParser::ParseHeaderType(const TArray<uint8>& Page)
 {
 	return Page[5];
 }
