@@ -47,6 +47,7 @@ void ARequestOrchestrator::Connect(TScriptInterface<IApiKeyProvider> ApiKeyProvi
 	{
 		AiBridgeSubsystem->Connect(ApiKey, ApiBaseUrl);
 		AiBridgeSubsystem->OnOpusData.AddDynamic(this, &ARequestOrchestrator::HandleAudioData);
+		AiBridgeSubsystem->OnAiResponse.AddDynamic(this, &ARequestOrchestrator::HandleAiResponse);
 	}
 }
 
@@ -57,5 +58,10 @@ void ARequestOrchestrator::Disconnect()
 void ARequestOrchestrator::HandleAudioData(const TArray<uint8>& Data)
 {
 	OnAudioDataReceived.Broadcast(Data);
+}
+
+void ARequestOrchestrator::HandleAiResponse(const FString& RequestId, const FString& Text)
+{
+	OnAiResponseReceived.Broadcast(RequestId, Text);
 }
 

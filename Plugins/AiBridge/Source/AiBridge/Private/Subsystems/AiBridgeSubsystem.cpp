@@ -157,6 +157,31 @@ void UAiBridgeSubsystem::UnwrapAudioChunk(const TArray<uint8>& Data, FString& Ou
 	checkf(false, TEXT("Audio data is not wrapped with RequestId. All audio must be wrapped."));
 }
 
+void UAiBridgeSubsystem::HandleOnTextMessage(const FString& Msg)
+{
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Msg);
+
+	if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+	{
+		UE_LOG(LogTemp, Log, TEXT("JSON parsed successfully"));
+		
+		FString RequestId;
+		if (JsonObject->TryGetStringField("requestId", RequestId))
+		{
+			FString Type;
+			if (JsonObject->TryGetStringField("type", Type) && Type == "AiResponse")
+			{
+				FString Text;
+				if (JsonObject->TryGetStringField("text", Text))
+				{
+					OnAiResponse.Broadcast(RequestId, Text);
+				}
+			}
+		}
+	}
+}
+
 void UAiBridgeSubsystem::HandleOnBinaryMessage(const TArray<uint8>& Data)
 {
 	UE_LOG(LogTemp, Log, TEXT("[On Binary] %d bytes"), Data.Num());
@@ -284,16 +309,31 @@ void UAiBridgeSubsystem::EnsureConnection(TFunction<void(bool)> Callback)
         	
         	double WsStart = FPlatformTime::Seconds();
         	
-        	WebSocket->OnDisconnected = [this]()
+        	
+        	TWeakObjectPtr<UAiBridgeSubsystem> WeakThis = this;
+        	
+        	WebSocket->OnDisconnected = [WeakThis]()
 			{
+        		if (!WeakThis.IsValid()) return;
+        		
 				UE_LOG(LogTemp, Log, TEXT("[disconnect]"));
 			};
         	
-        	WebSocket->OnBinaryMessage = [this](const TArray<uint8>& Data)
+        	WebSocket->OnBinaryMessage = [WeakThis](const TArray<uint8>& Data)
         	{
+        		if (!WeakThis.IsValid()) return;
+        		
         		UE_LOG(LogTemp, Log, TEXT("[On Binary] %d bytes"), Data.Num());
-        		HandleOnBinaryMessage(Data);
+        		WeakThis->HandleOnBinaryMessage(Data);
         	};
+        	
+        	WebSocket->OnTextMessage = [WeakThis](const FString& Msg)
+			{
+        		if (!WeakThis.IsValid()) return;
+        		
+				UE_LOG(LogTemp, Log, TEXT("[On Text Message] %s "), *Msg);
+				WeakThis->HandleOnTextMessage(Msg);
+			};
         	
         	
             WebSocket->Connect(

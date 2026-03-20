@@ -8,6 +8,7 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAudioDataReceived, const TArray<uint8>&, Data);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAiResponseReceived, const FString&, RequestId, const FString&, Text);
 
 UCLASS()
 class AIBRIDGE_API ARequestOrchestrator : public AActor
@@ -23,6 +24,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "Orchestrator")
 	FOnAudioDataReceived OnAudioDataReceived;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Orchestrator")
+	FOnAiResponseReceived OnAiResponseReceived;
 
 protected:
 	// Called when the game starts or when spawned
@@ -40,4 +44,7 @@ public:
 	
 	UFUNCTION()
 	void HandleAudioData(const TArray<uint8>& Data);
+	
+	UFUNCTION()
+	void HandleAiResponse(const FString& RequestId, const FString& Text);
 };

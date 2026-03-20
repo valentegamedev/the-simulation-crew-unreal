@@ -9,6 +9,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnConnected);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDisconnected);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTextMessage, const FString&, Message);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAiResponse, const FString&, RequestId, const FString&, Message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBinaryMessage, const TArray<uint8>&, Data);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOpusData, const TArray<uint8>&, Data);
 
@@ -60,6 +61,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
 	FOnOpusData OnOpusData;
 	
+	UPROPERTY(BlueprintAssignable, Category = "WebSocket")
+	FOnAiResponse OnAiResponse;
+	
 private:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -67,6 +71,8 @@ private:
 	void SendWakeUpCallAsync() const;
 	void UnwrapAudioChunk(const TArray<uint8>& Data, FString& OutRequestId, TArray<uint8>& OutAudioData);
 	
+	
+	void HandleOnTextMessage(const FString& Text);
 	void HandleOnBinaryMessage(const TArray<uint8>& Data);
 	
 	void HandleOpusPages(uint32 Serial);

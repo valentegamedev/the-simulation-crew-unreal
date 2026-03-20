@@ -4,7 +4,8 @@
 #include "WebSocket/WebSocketConnection.h"
 #include "IWebSocket.h"
 #include "WebSocketsModule.h"
-
+#include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonReader.h"
 
 UWebSocketConnection::~UWebSocketConnection()
 {
@@ -159,6 +160,7 @@ void UWebSocketConnection::HandleError(const FString& Error)
 void UWebSocketConnection::HandleOnMessage(const FString& Msg)
 {
 	UE_LOG(LogTemp, Warning, TEXT("[%s] Message: %s"), *StaticClass()->GetName(), *Msg);
+	
 	if (OnTextMessage) OnTextMessage(Msg);
 }
 
