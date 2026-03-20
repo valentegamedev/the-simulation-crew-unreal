@@ -82,4 +82,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void ProcessFakeBinaryData(TArray<uint8> Data);
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void SendSomething();
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void SendTextRequest(const FString Text);
 };

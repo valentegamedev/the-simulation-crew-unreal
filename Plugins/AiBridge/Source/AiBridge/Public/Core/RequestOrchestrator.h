@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "RequestOrchestrator.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAudioDataReceived, const TArray<uint8>&, Data);
+
 UCLASS()
 class AIBRIDGE_API ARequestOrchestrator : public AActor
 {
@@ -17,6 +20,9 @@ private:
 public:	
 	// Sets default values for this actor's properties
 	ARequestOrchestrator();
+	
+	UPROPERTY(BlueprintAssignable, Category = "Orchestrator")
+	FOnAudioDataReceived OnAudioDataReceived;
 
 protected:
 	// Called when the game starts or when spawned
@@ -31,4 +37,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void Disconnect();
+	
+	UFUNCTION()
+	void HandleAudioData(const TArray<uint8>& Data);
 };
