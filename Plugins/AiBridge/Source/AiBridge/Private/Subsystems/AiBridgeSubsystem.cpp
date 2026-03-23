@@ -381,26 +381,34 @@ void UAiBridgeSubsystem::ProcessFakeBinaryData(TArray<uint8> Data)
 
 void UAiBridgeSubsystem::SendSomething()
 {
-	TArray<uint8> Data = {
-		72, 0, 126, 56, 137, 57, 42, 227, 44, 193, 180, 205, 232, 130, 120, 54,
-		52, 29, 173, 103, 55, 171, 88, 78, 41, 72, 13, 84, 22, 179, 14, 27,
-		163, 109, 33, 176, 134, 178, 196, 4, 187, 236, 217, 217, 217, 210, 64, 254,
-		27, 166, 88, 209, 187, 131, 39, 172, 125, 245, 164, 128, 72, 128, 35, 188,
-		119, 3, 209, 6, 40, 115, 237, 137, 120, 145, 7, 92, 178, 114, 163, 16,
-		117, 233, 24, 26, 130, 37, 181, 183, 135, 190, 75, 11, 140, 41, 186, 226,
-		243, 134, 157, 233, 116, 8, 181, 156, 72, 130, 145, 222, 245, 127, 223, 222,
-		88, 2, 67, 188, 214, 60, 242, 101, 216, 217, 167, 156, 80, 240, 81, 115,
-		234, 245, 183, 243, 88, 205, 4, 231, 116, 26, 242, 198, 102, 199, 142, 123,
-		76, 166, 222, 66, 61, 70, 177, 224, 72, 128, 182, 219, 237, 174, 154, 134,
-		44, 231, 134, 122, 182, 163, 245, 137, 177, 178, 157, 168, 75, 201, 224, 180,
-		133, 182, 188, 14, 85, 104, 116, 23, 219, 15, 1, 91, 92, 35, 250, 51,
-		154, 38, 36, 91, 11, 17, 136, 84, 202, 168, 72, 129, 173, 1, 56, 204,
-		201, 209, 136, 220, 144, 251, 71, 116, 131, 227, 245, 250, 163, 85, 195, 157,
-		137, 161, 184, 12, 127, 70, 126, 155, 201, 70, 144, 164, 136, 3, 217, 8,
-		1, 35, 240
+	TArray<TArray<uint8>> Chunks = {
+
+		// Chunk 1
+		{
+			72, 3, 153, 18, 31, 14, 108, 99, 205, 154, 177, 88,
+			20, 125, 37, 188, 23, 247, 28, 64
+		},
+
+		// Chunk 2
+		{
+			72, 13, 53, 188, 88, 59, 153, 77, 132, 251, 179, 64,
+			148, 192, 116, 29, 150, 15, 229, 170, 182, 98, 235, 250,
+			195, 248, 139, 243, 29, 214, 234, 22, 207, 148, 112
+		},
+
+		// Chunk 3
+		{
+			72, 128, 11, 175, 126, 19, 184, 64, 14, 119, 199, 235,
+			200, 63, 149, 7, 0, 114, 164, 139, 209, 18, 128, 79,
+			221, 35, 14, 251, 211, 246, 92, 132, 154, 38, 120, 200,
+			60, 158, 2, 217, 204, 94, 157, 196
+		}
 	};
 	
-	WebSocket->SendBinary(Data);
+	for (const TArray<uint8>& Chunk : Chunks)
+	{
+		WebSocket->SendBinary(Chunk);
+	}
 }
 
 void UAiBridgeSubsystem::SendStartAudioRequest()
@@ -416,7 +424,7 @@ void UAiBridgeSubsystem::SendStartAudioRequest()
 	    "timestamp" : 0.0
 	  } ],
 	  "type" : "SessionStart",
-	  "requestId" : "%s",
+	  "requestId" : "29d8dda2-878d-4ea6-b40c-f3b413110542",
 	  "timestamp" : null,
 	  "sttProvider" : "google",
 	  "audioFormat" : "opus",
@@ -440,7 +448,7 @@ void UAiBridgeSubsystem::SendStartAudioRequest()
 	  "ttsLanguageCode" : null,
 	  "contextCacheName" : null
 	}
-	)"), *RequestId);
+	)"));
 	WebSocket->SendText(JsonString);
 	
 }
@@ -451,11 +459,22 @@ void UAiBridgeSubsystem::SendEndOfAudioRequest()
 	FString JsonString = FString::Printf(TEXT(R"(
         {
 		  "type" : "EndOfSpeech",
-		  "requestId" : "%s",
+		  "requestId" : "29d8dda2-878d-4ea6-b40c-f3b413110542",
 		  "timestamp" : null
 		}
-    )"), *RequestId);
+    )"));
 	WebSocket->SendText(JsonString);
+	
+	JsonString = FString::Printf(TEXT(R"(
+        {
+		  "type" : "EndOfAudio",
+		  "requestId" : "29d8dda2-878d-4ea6-b40c-f3b413110542",
+		  "timestamp" : null
+		}
+    )"));
+	WebSocket->SendText(JsonString);
+	
+	
 }
 
 void UAiBridgeSubsystem::SendTextRequest(const FString Text)
