@@ -93,5 +93,14 @@ public:
 	void SendSomething();
 	
 	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void SendStartAudioRequest();
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void SendEndOfAudioRequest();
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
 	void SendTextRequest(const FString Text);
+	
+	UFUNCTION(BlueprintCallable, Category = "WebSocket")
+	void SendBinaryRequest(const TArray<uint8> Bytes);
 };

@@ -383,46 +383,95 @@ void UAiBridgeSubsystem::SendSomething()
 {
 	FString JsonString = TEXT(R"(
         {
-          "type": "textinput",
-          "text": "Hello, how are you today?",
-          "requestId": "8d303a8a-ff39-4462-8ad2-10037c1727cc",
-          "timestamp":1771596968241,
-          "isNpcInitiated": false,
-          "context": {
-            "systemPrompt": "You are a professional customer service agent for XRLab.\n\nCOMPANY INFORMATION:\nSaxion XRLab is a Mixed Reality lab which focus on innovation using VR and AR solutions.\n\nPRODUCT KNOWLEDGE:\nWe offer development services for any kind of media which needs VR or AR. Including development using Unity and Unreal.\n\nCUSTOMER CONTEXT:\n\"No customer context available.\"\n\nSERVICE GUIDELINES:\n1. Greet customers warmly and professionally\n2. Listen actively to understand the issue\n3. Provide accurate information from the knowledge base\n4. If you don't know something, say so and offer to escalate\n5. Always confirm the customer's issue is resolved before ending\n6. Keep responses concise but complete\n\nESCALATION TRIGGERS:\n- Technical issues beyond basic troubleshooting\n- Billing disputes over ${serviceConfig.escalationThreshold}\n- Complaints about employee conduct\n- Legal or compliance questions\n\nWhen escalating, explain why and what will happen next.",
-            "messages": [{
-                "role": "user",
-                "content": "Hi there!"
-              },
-              {
-                "role": "assistant",
-                "content": "Hello traveler! What brings you here?"
-              }],
-            "voiceId": "EXAVITQu4vr4xnSDxMaL",
-            "llmModel": "gpt-4o-mini",
-            "llmProvider": "openai",
-            "temperature": 0.7,
-            "maxTokens": 500,
-            "language": "en-US",
-            "ttsStreamingMode": "batch",
-            "ttsModel": "eleven_turbo_v2_5",
-            "sttProvider": "google",
-
-            "voiceStability": 0.5,
-            "voiceSimilarityBoost": 0.75,
-            "voiceStyle": 0.6,
-            "voiceUseSpeakerBoost": true,
-            "voiceSpeed": 1.0,
-            "ttsLanguageCode": "en",
-
-            "responseFormat": "json_object",
-            "location": "europe-west4",
-
-            "contextCacheName": "projects/my-project/locations/europe-west4/cachedContents/abc123"
-          }
-        }
+		  "languageCode" : "en-US",
+		  "voiceId" : "EXAVITQu4vr4xnSDxMaL",
+		  "messages" : [ {
+		    "role" : "system",
+		    "content" : "You are a professional customer service agent for XRLab.\n\nCOMPANY INFORMATION:\nSaxion XRLab is a Mixed Reality lab which focus on innovation using VR and AR solutions.\n\nPRODUCT KNOWLEDGE:\nWe offer development services for any kind of media which needs VR or AR. Including development using Unity and Unreal.\n\nCUSTOMER CONTEXT:\n\"No customer context available.\"\n\nSERVICE GUIDELINES:\n1. Greet customers warmly and professionally\n2. Listen actively to understand the issue\n3. Provide accurate information from the knowledge base\n4. If you don't know something, say so and offer to escalate\n5. Always confirm the customer's issue is resolved before ending\n6. Keep responses concise but complete\n\nESCALATION TRIGGERS:\n- Technical issues beyond basic troubleshooting\n- Billing disputes over ${serviceConfig.escalationThreshold}\n- Complaints about employee conduct\n- Legal or compliance questions\n\nWhen escalating, explain why and what will happen next.",
+		    "timestamp" : 0.0
+		  } ],
+		  "type" : "SessionStart",
+		  "requestId" : "c00f3a2d-909b-4d59-8157-f5ed8bd65355",
+		  "timestamp" : null,
+		  "sttProvider" : "google",
+		  "audioFormat" : "opus",
+		  "sampleRate" : 16000,
+		  "opusBitrate" : 64000,
+		  "ttsStreamingMode" : "batch",
+		  "llmProvider" : "openai",
+		  "llmModel" : "gpt-4o-mini",
+		  "ttsModel" : "eleven_turbo_v2_5",
+		  "maxTokens" : 500,
+		  "temperature" : 0.7,
+		  "ttsOutputFormat" : "opus",
+		  "enableMetrics" : false,
+		  "customVocabulary" : null,
+		  "customVocabularyBoost" : 10.0,
+		  "voiceStability" : 0.5,
+		  "voiceSimilarityBoost" : 0.75,
+		  "voiceStyle" : 0.0,
+		  "voiceUseSpeakerBoost" : true,
+		  "voiceSpeed" : 1.0,
+		  "ttsLanguageCode" : null,
+		  "contextCacheName" : null
+		}
     )");
     WebSocket->SendText(JsonString);
+}
+
+void UAiBridgeSubsystem::SendStartAudioRequest()
+{
+	FString RequestId = FGuid::NewGuid().ToString();
+	FString JsonString = FString::Printf(TEXT(R"(
+	{
+	  "languageCode" : "en-US",
+	  "voiceId" : "EXAVITQu4vr4xnSDxMaL",
+	  "messages" : [ {
+	    "role" : "system",
+	    "content" : "You are a professional customer service agent for XRLab.\n\nCOMPANY INFORMATION:\nSaxion XRLab is a Mixed Reality lab which focus on innovation using VR and AR solutions.\n\nPRODUCT KNOWLEDGE:\nWe offer development services for any kind of media which needs VR or AR. Including development using Unity and Unreal.\n\nCUSTOMER CONTEXT:\n\"No customer context available.\"\n\nSERVICE GUIDELINES:\n1. Greet customers warmly and professionally\n2. Listen actively to understand the issue\n3. Provide accurate information from the knowledge base\n4. If you don't know something, say so and offer to escalate\n5. Always confirm the customer's issue is resolved before ending\n6. Keep responses concise but complete\n\nESCALATION TRIGGERS:\n- Technical issues beyond basic troubleshooting\n- Billing disputes over ${serviceConfig.escalationThreshold}\n- Complaints about employee conduct\n- Legal or compliance questions\n\nWhen escalating, explain why and what will happen next.",
+	    "timestamp" : 0.0
+	  } ],
+	  "type" : "SessionStart",
+	  "requestId" : "%s",
+	  "timestamp" : null,
+	  "sttProvider" : "google",
+	  "audioFormat" : "opus",
+	  "sampleRate" : 16000,
+	  "opusBitrate" : 64000,
+	  "ttsStreamingMode" : "batch",
+	  "llmProvider" : "openai",
+	  "llmModel" : "gpt-4o-mini",
+	  "ttsModel" : "eleven_turbo_v2_5",
+	  "maxTokens" : 500,
+	  "temperature" : 0.7,
+	  "ttsOutputFormat" : "opus",
+	  "enableMetrics" : false,
+	  "customVocabulary" : null,
+	  "customVocabularyBoost" : 10.0,
+	  "voiceStability" : 0.5,
+	  "voiceSimilarityBoost" : 0.75,
+	  "voiceStyle" : 0.0,
+	  "voiceUseSpeakerBoost" : true,
+	  "voiceSpeed" : 1.0,
+	  "ttsLanguageCode" : null,
+	  "contextCacheName" : null
+	}
+	)"), *RequestId);
+	WebSocket->SendText(JsonString);
+	
+}
+
+void UAiBridgeSubsystem::SendEndOfAudioRequest()
+{
+	FString RequestId = FGuid::NewGuid().ToString();
+	FString JsonString = FString::Printf(TEXT(R"(
+        {
+		  "type" : "EndOfSpeech",
+		  "requestId" : "%s",
+		  "timestamp" : null
+		}
+    )"), *RequestId);
+	WebSocket->SendText(JsonString);
 }
 
 void UAiBridgeSubsystem::SendTextRequest(const FString Text)
@@ -471,4 +520,9 @@ void UAiBridgeSubsystem::SendTextRequest(const FString Text)
         }
     )"), *Text, *RequestId);
 	WebSocket->SendText(JsonString);
+}
+
+void UAiBridgeSubsystem::SendBinaryRequest(const TArray<uint8> Bytes)
+{
+	WebSocket->SendBinary(Bytes);
 }
