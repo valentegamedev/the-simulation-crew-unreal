@@ -381,42 +381,26 @@ void UAiBridgeSubsystem::ProcessFakeBinaryData(TArray<uint8> Data)
 
 void UAiBridgeSubsystem::SendSomething()
 {
-	FString JsonString = TEXT(R"(
-        {
-		  "languageCode" : "en-US",
-		  "voiceId" : "EXAVITQu4vr4xnSDxMaL",
-		  "messages" : [ {
-		    "role" : "system",
-		    "content" : "You are a professional customer service agent for XRLab.\n\nCOMPANY INFORMATION:\nSaxion XRLab is a Mixed Reality lab which focus on innovation using VR and AR solutions.\n\nPRODUCT KNOWLEDGE:\nWe offer development services for any kind of media which needs VR or AR. Including development using Unity and Unreal.\n\nCUSTOMER CONTEXT:\n\"No customer context available.\"\n\nSERVICE GUIDELINES:\n1. Greet customers warmly and professionally\n2. Listen actively to understand the issue\n3. Provide accurate information from the knowledge base\n4. If you don't know something, say so and offer to escalate\n5. Always confirm the customer's issue is resolved before ending\n6. Keep responses concise but complete\n\nESCALATION TRIGGERS:\n- Technical issues beyond basic troubleshooting\n- Billing disputes over ${serviceConfig.escalationThreshold}\n- Complaints about employee conduct\n- Legal or compliance questions\n\nWhen escalating, explain why and what will happen next.",
-		    "timestamp" : 0.0
-		  } ],
-		  "type" : "SessionStart",
-		  "requestId" : "c00f3a2d-909b-4d59-8157-f5ed8bd65355",
-		  "timestamp" : null,
-		  "sttProvider" : "google",
-		  "audioFormat" : "opus",
-		  "sampleRate" : 16000,
-		  "opusBitrate" : 64000,
-		  "ttsStreamingMode" : "batch",
-		  "llmProvider" : "openai",
-		  "llmModel" : "gpt-4o-mini",
-		  "ttsModel" : "eleven_turbo_v2_5",
-		  "maxTokens" : 500,
-		  "temperature" : 0.7,
-		  "ttsOutputFormat" : "opus",
-		  "enableMetrics" : false,
-		  "customVocabulary" : null,
-		  "customVocabularyBoost" : 10.0,
-		  "voiceStability" : 0.5,
-		  "voiceSimilarityBoost" : 0.75,
-		  "voiceStyle" : 0.0,
-		  "voiceUseSpeakerBoost" : true,
-		  "voiceSpeed" : 1.0,
-		  "ttsLanguageCode" : null,
-		  "contextCacheName" : null
-		}
-    )");
-    WebSocket->SendText(JsonString);
+	TArray<uint8> Data = {
+		72, 0, 126, 56, 137, 57, 42, 227, 44, 193, 180, 205, 232, 130, 120, 54,
+		52, 29, 173, 103, 55, 171, 88, 78, 41, 72, 13, 84, 22, 179, 14, 27,
+		163, 109, 33, 176, 134, 178, 196, 4, 187, 236, 217, 217, 217, 210, 64, 254,
+		27, 166, 88, 209, 187, 131, 39, 172, 125, 245, 164, 128, 72, 128, 35, 188,
+		119, 3, 209, 6, 40, 115, 237, 137, 120, 145, 7, 92, 178, 114, 163, 16,
+		117, 233, 24, 26, 130, 37, 181, 183, 135, 190, 75, 11, 140, 41, 186, 226,
+		243, 134, 157, 233, 116, 8, 181, 156, 72, 130, 145, 222, 245, 127, 223, 222,
+		88, 2, 67, 188, 214, 60, 242, 101, 216, 217, 167, 156, 80, 240, 81, 115,
+		234, 245, 183, 243, 88, 205, 4, 231, 116, 26, 242, 198, 102, 199, 142, 123,
+		76, 166, 222, 66, 61, 70, 177, 224, 72, 128, 182, 219, 237, 174, 154, 134,
+		44, 231, 134, 122, 182, 163, 245, 137, 177, 178, 157, 168, 75, 201, 224, 180,
+		133, 182, 188, 14, 85, 104, 116, 23, 219, 15, 1, 91, 92, 35, 250, 51,
+		154, 38, 36, 91, 11, 17, 136, 84, 202, 168, 72, 129, 173, 1, 56, 204,
+		201, 209, 136, 220, 144, 251, 71, 116, 131, 227, 245, 250, 163, 85, 195, 157,
+		137, 161, 184, 12, 127, 70, 126, 155, 201, 70, 144, 164, 136, 3, 217, 8,
+		1, 35, 240
+	};
+	
+	WebSocket->SendBinary(Data);
 }
 
 void UAiBridgeSubsystem::SendStartAudioRequest()
