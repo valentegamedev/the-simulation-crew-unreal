@@ -147,7 +147,7 @@ void URuntimeAudioImporterLibrary::EncodePCMToOpus(const TArray<float> InPCM)
 		FOPUS_RuntimeCodec* Opus = (FOPUS_RuntimeCodec*)RuntimeCodec;
 		if (Opus)
 		{
-			if (InPCM.Num() == 480)
+			if (InPCM.Num() == 480 || InPCM.Num() == 960)
 			{
 				TArray<float> ResamplePCM = Resample48kTo16k(InPCM);
 				TArray<int16> PCM16 = FloatToPCM16(ResamplePCM);

@@ -446,7 +446,10 @@ TArray<TArray<uint8>> FOPUS_RuntimeCodec::EncodePCMToOpus(const TArray<float>& I
 
 TArray<uint8> FOPUS_RuntimeCodec::EncodePCMToOpusFull(const TArray<int16> InPCM)
 {
-	check(InPCM.Num() == 160); // 10 ms @ 16 kHz
+	const int32 FrameSize = InPCM.Num();
+
+	// Accept both 10 ms and 20 ms frames
+	check(FrameSize == 160 || FrameSize == 320);
 
 	static OpusEncoder* Encoder = nullptr;
 
@@ -465,7 +468,7 @@ TArray<uint8> FOPUS_RuntimeCodec::EncodePCMToOpusFull(const TArray<int16> InPCM)
 	int Bytes = opus_encode(
 		Encoder,
 		InPCM.GetData(),
-		160, // ✅ MUST match input size
+		FrameSize, // ✅ MUST match input size
 		Packet,
 		sizeof(Packet)
 	);
