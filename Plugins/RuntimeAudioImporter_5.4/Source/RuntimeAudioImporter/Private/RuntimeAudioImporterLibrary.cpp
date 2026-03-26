@@ -87,8 +87,57 @@ void URuntimeAudioImporterLibrary::ImportAudioFromBuffer(TArray<uint8> AudioData
 	ImportAudioFromBuffer(TArray64<uint8>(MoveTemp(AudioData)), AudioFormat);
 }
 
+TArray<float> URuntimeAudioImporterLibrary::DownmixStereoToMono(TArray<float> AudioData) //960 frame + stereo expected
+{
+	int32 NumFrames = AudioData.Num() / 2; //we need mono
+	TArray<float> Mono;
+	Mono.SetNumUninitialized(NumFrames);
+
+	for (int32 i = 0; i < NumFrames; i++)
+	{
+		const float L = AudioData[i * 2];
+		const float R = AudioData[i * 2 + 1];
+
+		Mono[i] = 0.5f * (L + R);
+	}
+
+	return Mono;
+}
+
+TArray<float> URuntimeAudioImporterLibrary::Resample48kTo16k(const TArray<float> In)
+{
+	TArray<float> Out;
+	Out.SetNumUninitialized(In.Num() / 3);
+
+	for (int32 i = 0; i < Out.Num(); i++)
+	{
+		Out[i] = In[i * 3];
+	}
+
+	return Out;
+}
+
+TArray<int16> URuntimeAudioImporterLibrary::FloatToPCM16(const TArray<float> InSamples)
+{
+	 TArray<int16> PCM16;
+    PCM16.SetNumUninitialized(InSamples.Num());
+
+    for (int32 i = 0; i < InSamples.Num(); i++)
+    {
+    	const float s = FMath::Clamp(InSamples[i], -1.0f, 1.0f);
+        PCM16[i] = FMath::Clamp(s * 32767.0f, -32768.0f, 32767.0f);
+    }
+
+    return PCM16;
+}
+
+
 void URuntimeAudioImporterLibrary::EncodePCMToOpus(const TArray<float> InPCM)
 {
+	
+	//UE_LOG(LogRuntimeAudioImporter, Warning, TEXT("Size PCM16: %d."), PCM16.Num());
+	
+	
 	ERuntimeAudioFormat OpusAudioFormat = ERuntimeAudioFormat::OggOpus;
 
 	FRuntimeCodecFactory CodecFactory;
@@ -98,17 +147,14 @@ void URuntimeAudioImporterLibrary::EncodePCMToOpus(const TArray<float> InPCM)
 		FOPUS_RuntimeCodec* Opus = (FOPUS_RuntimeCodec*)RuntimeCodec;
 		if (Opus)
 		{
-			UE_LOG(LogRuntimeAudioImporter, Warning, TEXT("Everythign went fine."));
-			/*
-			TArray<TArray<uint8>> EncodedPackets = Opus->EncodePCMToOpus(InPCM);
-			for (TArray<uint8>& Packets : EncodedPackets)
+			if (InPCM.Num() == 480)
 			{
-				OnOpusPacketEncoded.Broadcast(Packets);
-			}
-			*/
+				TArray<float> ResamplePCM = Resample48kTo16k(InPCM);
+				TArray<int16> PCM16 = FloatToPCM16(ResamplePCM);
 			
-			TArray<uint8> EncodedPackets = Opus->EncodePCMToOpusFull(InPCM);
-			OnOpusPacketEncoded.Broadcast(EncodedPackets);
+				TArray<uint8> EncodedPackets = Opus->EncodePCMToOpusFull(PCM16);
+				OnOpusPacketEncoded.Broadcast(EncodedPackets);
+			}
 		}
 	}
 }

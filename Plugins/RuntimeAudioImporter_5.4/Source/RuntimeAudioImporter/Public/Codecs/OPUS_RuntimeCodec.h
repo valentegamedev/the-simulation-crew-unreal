@@ -12,8 +12,9 @@ public:
 	virtual bool CheckAudioFormat(const FRuntimeBulkDataBuffer<uint8>& AudioData) override;
 	virtual bool GetHeaderInfo(FEncodedAudioStruct EncodedData, FRuntimeAudioHeaderInfo& HeaderInfo) override;
 	virtual bool Encode(FDecodedAudioStruct DecodedData, FEncodedAudioStruct& EncodedData, uint8 Quality) override;
-	virtual TArray<TArray<uint8>> EncodePCMToOpus(const TArray<float>& InPCM);
-	virtual TArray<uint8> EncodePCMToOpusFull(const TArray<float>& InPCM);
+
+	virtual TArray<uint8> EncodePCMToOpusFull(const TArray<int16> InPCM);
+	
 	virtual bool Decode(FEncodedAudioStruct EncodedData, FDecodedAudioStruct& DecodedData) override;
 	virtual ERuntimeAudioFormat GetAudioFormat() const override { return ERuntimeAudioFormat::OggOpus; }
 	virtual bool IsExtensionSupported(const FString& Extension) const override

@@ -100,9 +100,14 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (Keywords = "Importer, Transcoder, Converter, Runtime, MP3, FLAC, WAV, OGG, Vorbis, BINK"), Category = "Runtime Audio Importer|Import")
 	void ImportAudioFromBuffer(TArray<uint8> AudioData, ERuntimeAudioFormat AudioFormat);
 
+	UFUNCTION(BlueprintCallable, meta = (Keywords = "DownmixStereoToMono"), Category = "Runtime Audio Importer|Encode")
+	TArray<float> DownmixStereoToMono(TArray<float> AudioData);
+	TArray<float> Resample48kTo16k(const TArray<float> In);
+	TArray<int16> FloatToPCM16(const TArray<float> InSamples);
 	
-	UFUNCTION(BlueprintCallable, meta = (Keywords = "Encode OPUS Own"), Category = "Runtime Audio Importer|Encode")
+	UFUNCTION(BlueprintCallable, meta = (Keywords = "EncodePCMToOpus"), Category = "Runtime Audio Importer|Encode")
 	void EncodePCMToOpus(const TArray<float> InPCM);
+	
 	
 	/**
 	 * Import audio from a buffer. Suitable for use with 64-bit data size

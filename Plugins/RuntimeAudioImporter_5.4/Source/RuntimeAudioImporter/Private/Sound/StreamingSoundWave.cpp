@@ -184,7 +184,13 @@ void UStreamingSoundWave::PopulateAudioDataFromDecodedInfo(FDecodedAudioStruct&&
 		}();
 		if (IsBound)
 		{
+			int32 SampleRate2 = DecodedAudioInfo.SoundWaveBasicInfo.SampleRate;
+			int32 NumOfChannels2 = DecodedAudioInfo.SoundWaveBasicInfo.NumOfChannels;
+			
 			TArray<float> PCMData(DecodedAudioInfo.PCMInfo.PCMData.GetView().GetData(), DecodedAudioInfo.PCMInfo.PCMData.GetView().Num());
+			
+			//UE_LOG(LogRuntimeAudioImporter, Warning, TEXT("Array size %d, PCM NumOfFrames %d, SampleRate %d, NumOfCHannels %d"), PCMData.Num(), DecodedAudioInfo.PCMInfo.PCMNumOfFrames, SampleRate2, NumOfChannels2);
+			
 			AsyncTask(ENamedThreads::GameThread, [WeakThis = MakeWeakObjectPtr(this), PCMData = MoveTemp(PCMData)]() mutable
 			{
 				if (WeakThis.IsValid())

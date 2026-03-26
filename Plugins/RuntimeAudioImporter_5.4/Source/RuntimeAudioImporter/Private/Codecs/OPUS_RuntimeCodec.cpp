@@ -386,7 +386,7 @@ bool FOPUS_RuntimeCodec::Encode(FDecodedAudioStruct DecodedData, FEncodedAudioSt
 }
 
 
-
+/*
 TArray<TArray<uint8>> FOPUS_RuntimeCodec::EncodePCMToOpus(const TArray<float>& InPCM)
 {
 	const int32 FrameSize = 320; // 20ms @ 16kHz
@@ -442,62 +442,44 @@ TArray<TArray<uint8>> FOPUS_RuntimeCodec::EncodePCMToOpus(const TArray<float>& I
 
 	return Packets;
 }
+*/
 
-TArray<uint8> FOPUS_RuntimeCodec::EncodePCMToOpusFull(const TArray<float>& InPCM)
+TArray<uint8> FOPUS_RuntimeCodec::EncodePCMToOpusFull(const TArray<int16> InPCM)
 {
-	const int32 FrameSize = 320; // 20ms @ 16kHz
-	const int32 NumChannels = 1;
-	const int32 SamplesPerFrame = FrameSize * NumChannels;
+	check(InPCM.Num() == 160); // 10 ms @ 16 kHz
 
 	static OpusEncoder* Encoder = nullptr;
-	static TArray<int16> PCMBuffer;
 
 	if (!Encoder)
 	{
 		int Error = 0;
 		Encoder = opus_encoder_create(16000, 1, OPUS_APPLICATION_VOIP, &Error);
 
+		check(Error == OPUS_OK);
+
 		opus_encoder_ctl(Encoder, OPUS_SET_BITRATE(64000));
 	}
 
-	// Convert float → int16
-	int32 OldSize = PCMBuffer.Num();
-	PCMBuffer.SetNumUninitialized(OldSize + InPCM.Num());
+	uint8 Packet[4000];
 
-	for (int32 i = 0; i < InPCM.Num(); i++)
+	int Bytes = opus_encode(
+		Encoder,
+		InPCM.GetData(),
+		160, // ✅ MUST match input size
+		Packet,
+		sizeof(Packet)
+	);
+
+	if (Bytes < 0)
 	{
-		float Sample = FMath::Clamp(InPCM[i], -1.0f, 1.0f);
-		PCMBuffer[OldSize + i] = (int16)FMath::RoundToInt(Sample * 32767.0f);
+		UE_LOG(LogTemp, Error, TEXT("Opus encode error: %hs"), opus_strerror(Bytes));
+		return {};
 	}
 
-	TArray<uint8> Packets;
-
-	// Encode frames
-	while (PCMBuffer.Num() >= SamplesPerFrame)
-	{
-		uint8 Packet[4000];
-
-		int Bytes = opus_encode(
-			Encoder,
-			PCMBuffer.GetData(),
-			FrameSize,
-			Packet,
-			sizeof(Packet)
-		);
-
-		if (Bytes > 0)
-		{
-			
-			Packets.Append(Packet, Bytes);
-
-			
-		}
-
-		PCMBuffer.RemoveAt(0, SamplesPerFrame, false);
-	}
-
-	return Packets;
+	return TArray<uint8>(Packet, Bytes);
 }
+
+
 
 bool FOPUS_RuntimeCodec::Decode(FEncodedAudioStruct EncodedData, FDecodedAudioStruct& DecodedData)
 {
